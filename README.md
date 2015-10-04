@@ -23,7 +23,7 @@ class SomeClass{
 
         $root = PackageInfo::whereAmI($this);
 
-        $csv = file($root.'/mydata.csv');
+        $csv = file($root.'/data/mydata.csv');
 
         // ..etc
 
