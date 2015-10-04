@@ -1,0 +1,20 @@
+{
+    "name": "ketwaroo/composer-info",
+    "description": "Sort of a reflection tool for composer packages.",
+    "version": "1.0.0",
+    "type": "library",
+    "keywords": ["php", "composer", "introspection"],
+    "homepage": "https://github.com/ketwaroo/composer-info",
+    "time": "2015-10-04",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yaasir Ketwaroo"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "": "src/"
+        }
+    }
+}
