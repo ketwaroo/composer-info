@@ -14,26 +14,52 @@ use Ketwaroo\Exception\ExceptionPackageInfo;
 class PackageInfo
 {
 
+    /**
+     * Default composer.json file name.
+     */
     const COMPOSER_FILENAME = 'composer.json';
 
     /**
      *
-     * @var array 'composer.json location'=> 
+     * @var static[] 'composer.json location'=>instances.
      */
     protected static $cachedInstances = [];
 
+    /**
+     *
+     * @var array 'various hint strings'=>'canonical composer.json location'
+     */
     protected static $cachedLookups = [];
 
+    /**
+     *
+     * @var string 
+     */
     protected $composerJsonFile;
 
+    /**
+     *
+     * @var array 
+     */
     protected $composerJsonData;
 
+    /**
+     *
+     * @var string 
+     */
     protected $packageName;
 
+    /**
+     *
+     * @var string 
+     */
     protected $packageBasePath;
 
     /**
+     * Instantiate/cache and get the package info for a given hint.
      * 
+     * @param mixed $hint ideally __DIR__. Also accepts __FILE__, class name or class instance.
+     * @param string $composerFileName alternate composer.json file name.
      * @return static
      */
     public static function whereAmI($hint, $composerFileName = self::COMPOSER_FILENAME)
@@ -63,8 +89,8 @@ class PackageInfo
 
     /**
      * 
-     * @param mixed $hint file, directory or class name/instance. works best with __FILE__
-     * @
+     * @param mixed $hint ideally __DIR__. Also accepts __FILE__, class name or class instance.
+     * @param string $composerFileName alternate composer.json file name.
      */
     public function __construct($hint, $composerFileName = self::COMPOSER_FILENAME)
     {
@@ -73,10 +99,14 @@ class PackageInfo
         $this->packageBasePath  = $this->guessBaseDir($hintLocation, $composerFileName);
         $this->composerJsonFile = $this->packageBasePath . '/' . $composerFileName;
         $this->composerJsonData = $this->loadComposerData($this->composerJsonFile);
-
-        return $this;
     }
 
+    /**
+     * Reads the composer data.
+     * 
+     * @param string $composerFile
+     * @throws ExceptionPackageInfo
+     */
     protected function loadComposerData($composerFile)
     {
         if (!is_readable($composerFile))
@@ -88,6 +118,7 @@ class PackageInfo
     }
 
     /**
+     * Try to figure out "root" directory.
      * 
      * @param string $hintLocation
      * @param string $composerFileName
@@ -97,8 +128,6 @@ class PackageInfo
     protected function guessBaseDir($hintLocation, $composerFileName)
     {
         // keep going up until we hit what we're looking for.
-        $prevLocation = $hintLocation;
-
         do
         {
             $f = $hintLocation . '/' . $composerFileName;
@@ -120,29 +149,25 @@ class PackageInfo
     }
 
     /**
+     * Convert whatever hint we got into a usable file path.
      * 
      * @param mixed $hint 
-     * @return string
-     * @throws ExceptionPackageInfo
+     * @return string Real path to the hint.
+     * @throws ExceptionPackageInfo If hint location could not be determined.
      */
-    public static function determineHintLocation($hint)
+    protected static function determineHintLocation($hint)
     {
-        if (is_object($hint) || class_exists($hint))
-        {
-            $r = new \ReflectionClass($hint);
-
-            $path = $r->getFileName();
-        }
-        elseif (is_dir($hint))
+        if (is_string($hint) && file_exists($hint))
         {
             $path = $hint;
         }
-        elseif (is_file($hint))
+        elseif (is_object($hint) || class_exists($hint))
         {
-            $path = dirname($hint);
+            $r    = new \ReflectionClass($hint);
+            $path = $r->getFileName();
         }
 
-        // we need full path
+        // we need full path. could be weird link
         $path = realpath($path);
 
         if (false === $path)
@@ -166,18 +191,26 @@ class PackageInfo
 
     /**
      * 
-     * @return array
+     * @return array composer data.
      */
     public function getComposerJson()
     {
         return $this->composerJsonData;
     }
 
+    /**
+     * 
+     * @return string
+     */
     public function getComposerJsonFilename()
     {
         return $this->composerJsonFile;
     }
 
+    /**
+     * 
+     * @return string vendor/package
+     */
     public function getPackageName()
     {
         if (empty($packageName))
@@ -196,6 +229,11 @@ class PackageInfo
         return $this->packageName;
     }
 
+    /**
+     * "root" of the package.
+     * 
+     * @return string
+     */
     public function getPackageBasePath()
     {
         return $this->packageBasePath;
