@@ -38,6 +38,9 @@ class PackageInfo
      */
     public static function whereAmI($hint, $composerFileName = self::COMPOSER_FILENAME)
     {
+
+        $hint = static::determineHintLocation($hint);
+
         if (isset(static::$cachedLookups[$hint]))
         {
             return static::$cachedInstances[static::$cachedLookups[$hint]];
@@ -65,8 +68,9 @@ class PackageInfo
      */
     public function __construct($hint, $composerFileName = self::COMPOSER_FILENAME)
     {
+        $hintLocation = $this->determineHintLocation($hint);
 
-        $this->packageBasePath  = $this->guessBaseDir($this->determineHintLocation($hint), $composerFileName);
+        $this->packageBasePath  = $this->guessBaseDir($hintLocation, $composerFileName);
         $this->composerJsonFile = $this->packageBasePath . '/' . $composerFileName;
         $this->composerJsonData = $this->loadComposerData($this->composerJsonFile);
 
@@ -121,21 +125,21 @@ class PackageInfo
      * @return string
      * @throws ExceptionPackageInfo
      */
-    protected function determineHintLocation($hint)
+    public static function determineHintLocation($hint)
     {
-        if (is_file($hint))
+        if (is_object($hint) || class_exists($hint))
         {
-            $path = dirname($hint);
+            $r = new \ReflectionClass($hint);
+
+            $path = $r->getFileName();
         }
         elseif (is_dir($hint))
         {
             $path = $hint;
         }
-        elseif (is_object($hint) || class_exists($hint))
+        elseif (is_file($hint))
         {
-            $r = new \ReflectionClass($hint);
-
-            $path = $r->getFileName();
+            $path = dirname($hint);
         }
 
         // we need full path
@@ -146,7 +150,7 @@ class PackageInfo
             throw new ExceptionPackageInfo('Is it real? Could not determine real location of hint.');
         }
 
-        return $path;
+        return static::sanitisePaths($path);
     }
 
     /**
@@ -155,7 +159,7 @@ class PackageInfo
      * @param string $path
      * @return string
      */
-    protected function sanitisePaths($path)
+    public static function sanitisePaths($path)
     {
         return preg_replace('~[\\\/]+~', '/', $path);
     }
@@ -191,7 +195,7 @@ class PackageInfo
 
         return $this->packageName;
     }
-    
+
     public function getPackageBasePath()
     {
         return $this->packageBasePath;
