@@ -4,8 +4,8 @@
  *  @author Yaasir Ketwaroo <ketwaroo.yaasir@gmail.com>
  */
 
-require_once '../../src/K/PackageInfo.php';
-require_once '../../src/K/Exception/ExceptionPackageInfo.php';
+require_once '../../src/Ketwaroo/PackageInfo.php';
+require_once '../../src/Ketwaroo/Exception/ExceptionPackageInfo.php';
 
 $x = Ketwaroo\PackageInfo::whereAmI(__FILE__);
 var_dump($x->getPackageName());
