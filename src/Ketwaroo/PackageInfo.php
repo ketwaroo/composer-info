@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  @author Yaasir Ketwaroo <ketwaroo.yaasir@gmail.com>
+ *  @author Yaasir Ketwaroo 
  */
 
 namespace Ketwaroo;

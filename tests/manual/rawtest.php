@@ -1,7 +1,7 @@
 <?php
 
 /*
- *  @author Yaasir Ketwaroo <ketwaroo.yaasir@gmail.com>
+ *  @author Yaasir Ketwaroo 
  */
 error_reporting(-1);
 require_once '../../src/Ketwaroo/PackageInfo.php';
