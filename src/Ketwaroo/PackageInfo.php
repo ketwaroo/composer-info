@@ -11,8 +11,7 @@ use Ketwaroo\Exception\ExceptionPackageInfo;
 /**
  * Description of PackageInfo
  */
-class PackageInfo
-{
+class PackageInfo {
 
     /**
      * Default composer.json file name.
@@ -62,13 +61,11 @@ class PackageInfo
      * @param string $composerFileName alternate composer.json file name.
      * @return static
      */
-    public static function whereAmI($hint, $composerFileName = self::COMPOSER_FILENAME)
-    {
+    public static function whereAmI($hint, $composerFileName = self::COMPOSER_FILENAME) {
 
         $hint = static::determineHintLocation($hint);
 
-        if (isset(static::$cachedLookups[$hint]))
-        {
+        if (isset(static::$cachedLookups[$hint])) {
             return static::$cachedInstances[static::$cachedLookups[$hint]];
         }
 
@@ -77,14 +74,14 @@ class PackageInfo
         static::$cachedLookups[$hint] = $packageInfo->getComposerJsonFilename();
 
         // try again. could already have a hit
-        if (isset(static::$cachedInstances[static::$cachedLookups[$hint]]))
-        {
+        if (isset(static::$cachedInstances[static::$cachedLookups[$hint]])) {
             return static::$cachedInstances[static::$cachedLookups[$hint]];
         }
 
         static::$cachedInstances[static::$cachedLookups[$hint]] = $packageInfo;
 
         return $packageInfo;
+
     }
 
     /**
@@ -92,29 +89,27 @@ class PackageInfo
      * @param mixed $hint ideally __DIR__. Also accepts __FILE__, class name or class instance.
      * @param string $composerFileName alternate composer.json file name.
      */
-    public function __construct($hint, $composerFileName = self::COMPOSER_FILENAME)
-    {
+    public function __construct($hint, $composerFileName = self::COMPOSER_FILENAME) {
         $hintLocation = $this->determineHintLocation($hint);
 
         $this->packageBasePath  = $this->guessBaseDir($hintLocation, $composerFileName);
         $this->composerJsonFile = $this->packageBasePath . '/' . $composerFileName;
-        $this->composerJsonData = $this->loadComposerData($this->composerJsonFile);
+        $this->loadComposerData();
+
     }
 
     /**
      * Reads the composer data.
      * 
-     * @param string $composerFile
      * @throws ExceptionPackageInfo
      */
-    protected function loadComposerData($composerFile)
-    {
-        if (!is_readable($composerFile))
-        {
+    protected function loadComposerData() {
+        if (!is_readable($this->composerJsonFile)) {
             throw new ExceptionPackageInfo('Could not read composer data.');
         }
 
-        $this->composerJson = json_decode(file_get_contents($composerFile), true);
+        $this->composerJsonData = json_decode(file_get_contents($this->composerJsonFile), true);
+
     }
 
     /**
@@ -125,15 +120,12 @@ class PackageInfo
      * @return string
      * @throws ExceptionPackageInfo
      */
-    protected function guessBaseDir($hintLocation, $composerFileName)
-    {
+    protected function guessBaseDir($hintLocation, $composerFileName) {
         // keep going up until we hit what we're looking for.
-        do
-        {
+        do {
             $f = $hintLocation . '/' . $composerFileName;
 
-            if (is_file($f))
-            {
+            if (is_file($f)) {
                 return $hintLocation;
             }
             $prevLocation = $hintLocation;
@@ -141,11 +133,10 @@ class PackageInfo
             $hintLocation = $this->sanitisePaths(dirname($hintLocation));
 
             $ranOut = ($prevLocation === $hintLocation); // basically hit root directory
-        }
-        while (!$ranOut);
-
+        } while (!$ranOut);
 
         throw new ExceptionPackageInfo('The trail went cold. Could not determine the location of the composer file and ran out of places to look.');
+
     }
 
     /**
@@ -155,14 +146,11 @@ class PackageInfo
      * @return string Real path to the hint.
      * @throws ExceptionPackageInfo If hint location could not be determined.
      */
-    protected static function determineHintLocation($hint)
-    {
-        if (is_string($hint) && file_exists($hint))
-        {
+    protected static function determineHintLocation($hint) {
+        if (is_string($hint) && file_exists($hint)) {
             $path = $hint;
         }
-        elseif (is_object($hint) || class_exists($hint))
-        {
+        elseif (is_object($hint) || class_exists($hint)) {
             $r    = new \ReflectionClass($hint);
             $path = $r->getFileName();
         }
@@ -170,12 +158,12 @@ class PackageInfo
         // we need full path. could be weird link
         $path = realpath($path);
 
-        if (false === $path)
-        {
+        if (false === $path) {
             throw new ExceptionPackageInfo('Is it real? Could not determine real location of hint.');
         }
 
         return static::sanitisePaths($path);
+
     }
 
     /**
@@ -184,49 +172,46 @@ class PackageInfo
      * @param string $path
      * @return string
      */
-    public static function sanitisePaths($path)
-    {
+    public static function sanitisePaths($path) {
         return preg_replace('~[\\\/]+~', '/', $path);
+
     }
 
     /**
      * 
      * @return array composer data.
      */
-    public function getComposerJson()
-    {
+    public function getComposerJson() {
         return $this->composerJsonData;
+
     }
 
     /**
      * 
      * @return string
      */
-    public function getComposerJsonFilename()
-    {
+    public function getComposerJsonFilename() {
         return $this->composerJsonFile;
+
     }
 
     /**
      * 
      * @return string vendor/package
      */
-    public function getPackageName()
-    {
-        if (empty($packageName))
-        {
-            if (isset($this->composerJsonData['name']))
-            {
+    public function getPackageName() {
+        if (empty($packageName)) {
+            if (isset($this->composerJsonData['name'])) {
                 $this->packageName = $this->composerJsonData['name'];
             }
-            else // name is required but just in case..
-            {
+            else { // name is required but just in case..
                 list($package, $vendor) = array_reverse(explode('/', $this->packageBasePath));
                 $this->packageName = "{$vendor}/{$package}";
             }
         }
 
         return $this->packageName;
+
     }
 
     /**
@@ -234,9 +219,8 @@ class PackageInfo
      * 
      * @return string
      */
-    public function getPackageBasePath()
-    {
+    public function getPackageBasePath() {
         return $this->packageBasePath;
-    }
 
+    }
 }
